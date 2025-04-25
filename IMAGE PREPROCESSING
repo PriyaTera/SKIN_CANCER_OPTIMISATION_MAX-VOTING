@@ -1,0 +1,79 @@
+import cv2
+import numpy as np
+import os
+from skimage import exposure
+from skimage import img_as_float
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import matplotlib.pyplot as plt
+from skimage import filters
+from PIL import Image
+
+# Preprocessing function for skin cancer images
+def preprocess_image(image_path, target_size=(256, 256)):
+    # Step 1: Resizing
+    image = cv2.imread(image_path)
+    image_resized = cv2.resize(image, target_size)
+
+    # Step 2: Normalization
+    image_normalized = image_resized.astype('float32') / 255.0
+
+    # Step 3: Noise Reduction (Using Gaussian Filtering)
+    image_denoised = cv2.GaussianBlur(image_normalized, (5, 5), 0)
+
+    # Step 4: Contrast Enhancement (Histogram Equalization)
+    image_gray = cv2.cvtColor(image_denoised, cv2.COLOR_BGR2GRAY)
+    image_enhanced = exposure.equalize_hist(image_gray)  # Applying histogram equalization
+
+    # Step 5: Edge Detection (Canny edge detector)
+    edges = cv2.Canny((image_enhanced * 255).astype(np.uint8), 100, 200)
+
+    # Step 6: Data Augmentation (Optional for training data)
+    datagen = ImageDataGenerator(
+        rotation_range=30,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        fill_mode='nearest'
+    )
+
+    # Reshaping image to 4D to feed into the ImageDataGenerator
+    image_augmented = image_resized.reshape((1,) + image_resized.shape)
+    aug_iter = datagen.flow(image_augmented, batch_size=1)
+
+    # Get the augmented image
+    augmented_image = next(aug_iter)[0].astype('uint8')
+
+    return image_resized, image_enhanced, edges, augmented_image
+
+# Function to visualize the results
+def display_images(original, enhanced, edges, augmented):
+    plt.figure(figsize=(12, 8))
+    plt.subplot(2, 2, 1)
+    plt.imshow(original)
+    plt.title('Resized Image')
+    plt.axis('off')
+
+    plt.subplot(2, 2, 2)
+    plt.imshow(enhanced, cmap='gray')
+    plt.title('Enhanced Image')
+    plt.axis('off')
+
+    plt.subplot(2, 2, 3)
+    plt.imshow(edges, cmap='gray')
+    plt.title('Edge Detection')
+    plt.axis('off')
+
+    plt.subplot(2, 2, 4)
+    plt.imshow(augmented)
+    plt.title('Augmented Image')
+    plt.axis('off')
+
+    plt.show()
+
+# Example usage: Replace 'skin_lesion.jpg' with your actual image path
+image_path = '/content/ISIC_0029258.jpg'  # Update with the path to your image
+
+resized, enhanced, edges, augmented = preprocess_image(image_path)
+display_images(resized, enhanced, edges, augmented)
