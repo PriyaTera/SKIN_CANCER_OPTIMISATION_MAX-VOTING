@@ -1,0 +1,33 @@
+import numpy as np
+import cv2
+import mahotas
+from skimage.feature import local_binary_pattern
+import matplotlib.pyplot as plt
+
+# Function to calculate GLCM-based features using mahotas
+def glcm_texture(image):
+    # Convert the image to grayscale
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Calculate the GLCM using mahotas
+    glcm = mahotas.features.haralick(gray_image)
+    
+    # Extract statistical texture features from the GLCM
+    contrast = glcm[:, 0]  # Contrast
+    correlation = glcm[:, 1]  # Correlation
+    energy = glcm[:, 4]  # Energy
+    homogeneity = glcm[:, 3]  # Homogeneity
+    entropy = -np.sum(glcm * np.log2(glcm + 1e-10), axis=1)  # Entropy
+    
+    return contrast, correlation, energy, homogeneity, entropy
+
+# Example of reading an image and performing feature extraction
+image = cv2.imread('/content/ISIC_0029258.jpg')  # Replace with the path to your image
+contrast, correlation, energy, homogeneity, entropy = glcm_texture(image)
+
+# Display the extracted features
+print("Contrast:", contrast)
+print("Correlation:", correlation)
+print("Energy:", energy)
+print("Homogeneity:", homogeneity)
+print("Entropy:", entropy)
