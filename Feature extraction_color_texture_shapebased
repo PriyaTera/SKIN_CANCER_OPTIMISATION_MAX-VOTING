@@ -1,0 +1,122 @@
+import numpy as np
+import cv2
+import mahotas
+from skimage.feature import local_binary_pattern
+from skimage import color, measure
+import matplotlib.pyplot as plt
+
+# Function to calculate Color Histograms (RGB and HSV)
+def color_histogram(image):
+    # Convert the image to HSV color space
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    # Calculate histograms for RGB and HSV channels
+    hist_rgb = cv2.calcHist([image], [0, 1, 2], None, [256, 256, 256], [0, 256, 0, 256, 0, 256])
+    hist_hsv = cv2.calcHist([hsv_image], [0, 1, 2], None, [256, 256, 256], [0, 256, 0, 256, 0, 256])
+    
+    return hist_rgb, hist_hsv
+
+# Function to calculate Color Moments (Mean, StdDev, Skewness)
+def color_moments(image):
+    # Convert the image to HSV color space
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    # Calculate moments for each channel
+    mean = np.mean(hsv_image, axis=(0, 1))
+    stddev = np.std(hsv_image, axis=(0, 1))
+    skewness = np.mean((hsv_image - mean) ** 3, axis=(0, 1)) / (stddev ** 3)
+    
+    return mean, stddev, skewness
+
+# Function to calculate GLCM-based texture features using mahotas
+def glcm_texture(image):
+    # Convert the image to grayscale
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Calculate the GLCM using mahotas
+    glcm = mahotas.features.haralick(gray_image)
+    
+    # Extract statistical texture features from the GLCM
+    contrast = glcm[:, 0]  # Contrast
+    correlation = glcm[:, 1]  # Correlation
+    energy = glcm[:, 4]  # Energy
+    homogeneity = glcm[:, 3]  # Homogeneity
+    entropy = -np.sum(glcm * np.log2(glcm + 1e-10), axis=1)  # Entropy
+    
+    return contrast, correlation, energy, homogeneity, entropy
+
+# Function to calculate Local Binary Pattern (LBP)
+def lbp_texture(image):
+    # Convert image to grayscale
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # Calculate LBP of the image
+    lbp = local_binary_pattern(gray_image, P=8, R=1, method='uniform')
+    
+    # Calculate histogram of LBP
+    lbp_hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, 11), range=(0, 10))
+    lbp_hist = lbp_hist / lbp_hist.sum()  # Normalize histogram
+    
+    return lbp_hist
+
+# Function to calculate shape features (Area, Perimeter, Compactness)
+def shape_features(image):
+    # Convert image to grayscale and apply thresholding
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    _, binary_image = cv2.threshold(gray_image, 128, 255, cv2.THRESH_BINARY)
+    
+    # Find contours
+    contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Assuming the largest contour is the skin lesion
+    contour = max(contours, key=cv2.contourArea)
+    
+    # Calculate area, perimeter, and compactness
+    area = cv2.contourArea(contour)
+    perimeter = cv2.arcLength(contour, True)
+    compactness = (perimeter ** 2) / (4 * np.pi * area) if area != 0 else 0
+    
+    return area, perimeter, compactness
+
+# Example of reading an image and performing feature extraction
+def extract_features(image_path):
+    # Read the image
+    image = cv2.imread(image_path)
+    
+    # Color-based feature extraction
+    hist_rgb, hist_hsv = color_histogram(image)
+    mean, stddev, skewness = color_moments(image)
+    
+    # Texture-based feature extraction (GLCM and LBP)
+    contrast, correlation, energy, homogeneity, entropy = glcm_texture(image)
+    lbp_hist = lbp_texture(image)
+    
+    # Shape-based feature extraction
+    area, perimeter, compactness = shape_features(image)
+    
+    # Collecting all extracted features
+    features = {
+        "Color Hist RGB": hist_rgb,
+        "Color Hist HSV": hist_hsv,
+        "Color Moments Mean": mean,
+        "Color Moments StdDev": stddev,
+        "Color Moments Skewness": skewness,
+        "GLCM Contrast": contrast,
+        "GLCM Correlation": correlation,
+        "GLCM Energy": energy,
+        "GLCM Homogeneity": homogeneity,
+        "GLCM Entropy": entropy,
+        "LBP Histogram": lbp_hist,
+        "Area": area,
+        "Perimeter": perimeter,
+        "Compactness": compactness
+    }
+    
+    return features
+
+# Image path
+image_path = '/content/ISIC_0029258.jpg'  # Replace with the path to your image
+features = extract_features(image_path)
+
+# Display the extracted features
+print(features)
