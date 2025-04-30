@@ -1,0 +1,40 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Creating a DataFrame with the given data
+data = {
+    "Model": ["RF", "LightGBM", "XGBoost", "MV"],
+    "Accuracy": [85.76, 88.16, 91.47, 96.41],
+    "Precision": [84.50, 87.10, 90.80, 95.80],
+    "Recall": [86.00, 88.50, 91.90, 96.90],
+    "F1-Score": [85.24, 87.79, 91.34, 96.34]
+}
+
+# Creating the DataFrame
+df = pd.DataFrame(data)
+
+# Plotting the data
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Set bar width
+bar_width = 0.2
+index = np.arange(len(df['Model']))
+
+# Plot each metric
+bar1 = ax.bar(index, df['Accuracy'], bar_width, label='Accuracy')
+bar2 = ax.bar(index + bar_width, df['Precision'], bar_width, label='Precision')
+bar3 = ax.bar(index + 2 * bar_width, df['Recall'], bar_width, label='Recall')
+bar4 = ax.bar(index + 3 * bar_width, df['F1-Score'], bar_width, label='F1-Score')
+
+# Labeling the plot
+ax.set_xlabel('Model', fontsize=12)
+ax.set_ylabel('Percentage (%)', fontsize=12)
+ax.set_title('Cross-Model Performance Comparison', fontsize=14)
+ax.set_xticks(index + 1.5 * bar_width)
+ax.set_xticklabels(df['Model'], fontsize=12)
+ax.legend()
+
+# Display the plot
+plt.tight_layout()
+plt.show()
