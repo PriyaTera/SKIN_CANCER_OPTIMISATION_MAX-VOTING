@@ -1,0 +1,26 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+# Create the confusion matrix based on the data in the table
+conf_matrix = np.array([
+    [268, 7, 8, 7, 7, 9, 6],    # Class0
+    [6, 264, 7, 12, 11, 10, 8],  # Class1
+    [9, 9, 271, 8, 6, 8, 8],     # Class2
+    [5, 4, 4, 261, 8, 11, 9],    # Class3
+    [7, 6, 5, 5, 265, 7, 8],     # Class4
+    [7, 11, 9, 4, 9, 260, 8],    # Class5
+    [6, 7, 5, 2, 5, 2, 272]     # Class6
+])
+# Labels for classes
+class_labels = ['Class0', 'Class1', 'Class2', 'Class3', 'Class4', 'Class5', 'Class6']
+# Plot the confusion matrix using seaborn heatmap
+plt.figure(figsize=(8,6))
+sns.heatmap(conf_matrix, annot=True, fmt="d", cmap="Blues", xticklabels=class_labels, yticklabels=class_labels)
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.show()
+# y_true = [true labels here]
+# y_pred = [predicted labels here]
+# cm = confusion_matrix(y_true, y_pred)
