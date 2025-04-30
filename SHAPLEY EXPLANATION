@@ -1,0 +1,29 @@
+import shap
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+# Define feature names based on the features extracted in the paper
+feature_names = [
+    'Color_Histogram_R', 'Color_Histogram_G', 'Color_Histogram_B',
+    'Color_Moment_Mean', 'Color_Moment_StdDev', 'Color_Moment_Skewness',
+    'GLCM_Contrast', 'GLCM_Correlation', 'GLCM_Energy', 'GLCM_Homogeneity'
+]
+# Generate synthetic data to represent these features
+np.random.seed(42)
+X_sample = np.random.rand(100, 10)  # 100 samples and 10 features (color and texture features)
+y_sample = np.random.randint(0, 2, 100)  # Binary classification (0 or 1)
+# Train a RandomForest model
+rf_model = RandomForestClassifier(n_estimators=100)
+rf_model.fit(X_sample, y_sample)
+# Use SHAP to explain the model
+explainer = shap.TreeExplainer(rf_model)
+shap_values = explainer.shap_values(X_sample)
+# Check the shapes of the SHAP values to ensure they match the input data
+print(f"SHAP values for class 0 shape: {shap_values[0].shape}")
+print(f"SHAP values for class 1 shape: {shap_values[1].shape}")
+print(f"Input features shape: {X_sample.shape}")
+# Plot the SHAP summary plot for the positive class (class 1)
+# Use shap_values[:, :, 1] to select SHAP values for class 1 across all samples and features
+shap.summary_plot(shap_values[:, :, 1], X_sample, feature_names=feature_names)
+plt.show(
