@@ -1,0 +1,73 @@
+!pip install tensorflow opencv-python
+
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+import cv2
+from tensorflow.keras.applications import ResNet50  # Example: ResNet50, replace with your model
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras import backend as K
+
+# Load a pre-trained model 
+model = ResNet50(weights='imagenet')  # Replace with your custom skin cancer model if needed
+
+# Load and preprocess skin cancer image
+img_path = '/content/ISIC_0024310.jpg'  # Replace with  image path
+img = image.load_img(img_path, target_size=(224, 224))  # Resize image for the model
+img_array = image.img_to_array(img)
+img_array = np.expand_dims(img_array, axis=0)
+img_array = tf.keras.applications.resnet50.preprocess_input(img_array)  # Preprocess for ResNet
+
+# Predict the class of the image (skin cancer classification)
+predictions = model.predict(img_array)
+predicted_class = np.argmax(predictions)
+
+# Get the last convolutional layer and the output of that layer
+last_conv_layer = model.get_layer('conv5_block3_out')  # Modify based on your model's layer
+heatmap_model = tf.keras.models.Model([model.inputs], [last_conv_layer.output, model.output])
+
+# Compute the gradient of the predicted class with respect to the last convolutional layer
+with tf.GradientTape() as tape:
+    conv_output, predictions = heatmap_model(img_array)
+    class_channel = predictions[:, predicted_class]
+
+# Compute the gradient of the class output with respect to the last convolutional layer
+grads = tape.gradient(class_channel, conv_output)
+
+# Global average pooling to get the weights of each channel
+pooled_grads = K.mean(grads, axis=(0, 1, 2))
+
+# Multiply each channel in the feature map by the corresponding weight
+conv_output = conv_output[0]
+# Convert pooled_grads to the correct shape for multiplication
+pooled_grads = tf.reshape(pooled_grads, (1, 1, -1))
+# Use tf.multiply to perform element-wise multiplication
+conv_output = tf.multiply(conv_output, pooled_grads)
+# Generate the heatmap by averaging the feature map along the channels
+heatmap = np.mean(conv_output, axis=-1)
+
+# Apply ReLU to the heatmap (to keep only positive values)
+heatmap = np.maximum(heatmap, 0)
+
+# Normalize the heatmap
+heatmap /= np.max(heatmap)
+
+# Resize the heatmap to match the size of the original image
+heatmap = cv2.resize(heatmap, (img.size[0], img.size[1]))
+
+# Convert the image to an array for overlay
+img_array = image.img_to_array(img)
+
+# Apply the heatmap to the original image
+heatmap = np.uint8(255 * heatmap)
+heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+
+# Superimpose the heatmap on the image
+superimposed_img = heatmap * 0.4 + img_array
+superimposed_img = np.uint8(superimposed_img)
+
+# Display the original image with the Grad-CAM heatmap
+plt.figure(figsize=(10, 10))
+plt.imshow(superimposed_img)
+plt.axis('off')
+plt.show()
