@@ -29,7 +29,6 @@ Sequential usage instructions for:
 •	Computing performance metrics (accuracy, precision, recall, F1-score per class)
 •	Expected results table showing class-specific performance
 8. XAI Methods Documentation
-A dedicated section describing each of the seven XAI methods:
 •	Grad-CAM: Gradient-weighted class activation mapping for convolutional layers
 •	Integrated Gradients: Attribution via path integration from baseline to input
 •	Saliency Maps: Gradient-based pixel importance
@@ -37,13 +36,7 @@ A dedicated section describing each of the seven XAI methods:
 •	LIME: Local linear approximations with superpixel segmentation
 •	DeepLIFT: Reference-based feature importance scores
 •	SHAP: Shapley value-based explanations with gradient explainer
-Each method includes interpretation guidance (red/yellow = high attention, blue = low attention, clinical implications).
-9. Running the Full Pipeline
-A single bash command or step-by-step sequential execution instructions that exactly reproduce all reported results, including:
-•	Confusion matrix (Figure X)
-•	Class-specific metrics table (Table 5)
-•	Comprehensive XAI comparison visualizations
-•	Summary analysis report
-10. Troubleshooting & Known Issues
+
+9. Troubleshooting & Known Issues
 Common problems (memory requirements for LightGBM >8GB, Kaggle API setup, GA convergence tuning) with explicit solutions.
 
