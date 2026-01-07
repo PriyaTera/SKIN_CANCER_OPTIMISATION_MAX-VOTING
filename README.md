@@ -1,6 +1,6 @@
 # SKIN_CANCER_OPTIMISATION_MAX-VOTING
 1. Project Overview
-The README opens with a concise one-paragraph project description emphasizing reproducibility and methodological transparency. It clearly states that the framework implements seven distinct XAI methods (Grad-CAM, Integrated Gradients, LIME, Saliency Maps, DeepLIFT, SmoothGrad, and SHAP) integrated with an ensemble classification pipeline (Random Forest, XGBoost, LightGBM) using max voting aggregation on the HAM10000 and ISIC 2018 datasets.
+The framework implements seven distinct XAI methods (Grad-CAM, Integrated Gradients, LIME, Saliency Maps, DeepLIFT, SmoothGrad, and SHAP) integrated with an ensemble classification pipeline (Random Forest, XGBoost, LightGBM) using max voting aggregation on the HAM10000 and ISIC 2018 datasets.
 2. Installation & Dependencies
 A dedicated section now provides explicit pip installation commands for all required packages (TensorFlow, scikit-learn, LIME, SHAP, mahotas, XGBoost, LightGBM, etc.), ensuring reproducibility across computational environments. Python version requirements (3.8+) are clearly specified.
 3. Dataset Setup Instructions
